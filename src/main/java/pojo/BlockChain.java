@@ -195,7 +195,7 @@ public class BlockChain {
      * 获取当前区块链最新的区块
      * @return
      */
-    private Block getLastBlock() {
+    public Block getLastBlock() {
         return blockChain.get(blockChain.size() - 1);
     }
     @Override
