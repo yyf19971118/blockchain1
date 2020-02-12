@@ -39,6 +39,13 @@ public class P2PNode {
         // 初始化节点列表
         sockets = new ArrayList<WebSocket>();
     }
+    public BlockChain getBlockChain() {
+        return blockChain;
+    }
+
+    public List<WebSocket> getSockets() {
+        return sockets;
+    }
 
     /**
      * 初始化节点
@@ -155,7 +162,53 @@ public class P2PNode {
      * @param data
      */
     private void handleBlockResponse(String data) {
+        //把收到的消息内容解析成
+        List<Block> blocksReceived=JSON.parseArray(data,Block.class);
+        //获取收到的区块数据里面的最新区块
+        Block latesBlockReceived=blocksReceived.get(blocksReceived.size()-1);
+        //获取本地节点最新区块
+        Block latestBlock=blockChain.getLastBlock();
 
+        //比较双方最新区块的索引，如果远程的最新区块索引更大，做下一步处理
+        if(latesBlockReceived.getIndex()>latestBlock.getIndex()){
+            //判断远程的最新区块是否可以追加到本地区块链末尾，直接追加
+            if(latestBlock.getHash().equals(latesBlockReceived.getPreviousHash())
+                    &&latestBlock.getIndex()+1==latesBlockReceived.getIndex()){
+                System.out.println("在本地区块链末尾追加接收到的新区块");
+                blockChain.addBlock(latesBlockReceived);
+                //广播最新区块
+                broadcastLatestBlock();
+                // 判断远程的区块数据是一个区块还是整个区块链
+            } else if (blocksReceived.size()==1){
+                //如果是一个区块，则获取远程节点的整个区块链
+                System.out.println("向对方请求整个区块列表");
+                //向其他节点请求整个区块列表
+                broadcast(reqBlockChainMsg());
+            }else{
+                // 否则，替换本地区块链数据
+                System.out.println("替换本地区块链数据");
+                blockChain.replaceChain(blocksReceived);
+                broadcastLatestBlock();
+            }
+        }else{
+            //否则不处理
+            System.out.println("对方的区块链不比本地的更长，不做处理");
+        }
+    }
+    /**
+     * 广播消息
+     * @param message 要广播的消息内容
+     */
+    private void broadcast(String message){
+        for(WebSocket socket:sockets){
+            socket.send(message);
+        }
+    }
+    /**
+     * 广播最新区块
+     */
+    public void broadcastLatestBlock(){
+        broadcast(resLatestBlockMsg());
     }
 
     /**
@@ -200,13 +253,13 @@ public class P2PNode {
         // 创建 P2P 节点
         P2PNode p2p = new P2PNode(bc);
         // 初始化节点
-        // p2p.initNode(7000);
+         //p2p.initNode(7000);
 
         // 等待一秒钟
-        // Thread.sleep(1000);
+         Thread.sleep(1000);
 
         // 创建客户端并向服务端发起连接
-        // p2p.connectToNode("ws://127.0.0.1:7000");
+         //p2p.connectToNode("ws://127.0.0.1:7000");
 
         System.out.println(p2p.reqLatestBlockMsg());
         System.out.println(p2p.reqBlockChainMsg());

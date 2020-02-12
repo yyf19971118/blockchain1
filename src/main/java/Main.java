@@ -1,3 +1,5 @@
+import http.HttpServer;
+import p2p.P2PNode;
 import pojo.Block;
 import pojo.BlockChain;
 
@@ -43,30 +45,40 @@ public class Main {
         //打印结果
         System.out.println(bc);
         */
-        BlockChain bc1 = new BlockChain();
-        bc1.addBlock(bc1.generateNextBlock("1-1"));
-        bc1.addBlock(bc1.generateNextBlock("1-2"));
-        bc1.addBlock(bc1.generateNextBlock("1-3"));
-        bc1.getBlockChain().get(2).setData("2-9");
-        BlockChain bc2 = new BlockChain();
-        bc2.addBlock(bc2.generateNextBlock("2-1"));
-        bc2.addBlock(bc2.generateNextBlock("2-2"));
+//        BlockChain bc1 = new BlockChain();
+//        bc1.addBlock(bc1.generateNextBlock("1-1"));
+//        bc1.addBlock(bc1.generateNextBlock("1-2"));
+//        bc1.addBlock(bc1.generateNextBlock("1-3"));
+//        bc1.getBlockChain().get(2).setData("2-9");
+//        BlockChain bc2 = new BlockChain();
+//        bc2.addBlock(bc2.generateNextBlock("2-1"));
+//        bc2.addBlock(bc2.generateNextBlock("2-2"));
+//
+//
+//
+//        System.out.println(bc1);
+//        System.out.println(bc2);
+//
+//        System.out.println("执行替换");
+//        bc2.replaceChain(bc1.getBlockChain());
+//
+//
+//        System.out.println(bc1);
+//        System.out.println(bc2);
 
+        //8000 7000
+        if (args.length == 2){
+            int httpPort = Integer.valueOf(args[0]);
+            int wsPort = Integer.valueOf(args[1]);
 
-
-        System.out.println(bc1);
-        System.out.println(bc2);
-
-        System.out.println("执行替换");
-        bc2.replaceChain(bc1.getBlockChain());
-
-
-        System.out.println(bc1);
-        System.out.println(bc2);
-
-
-
-
+            BlockChain bc = new BlockChain();
+            P2PNode p2p = new P2PNode(bc);
+            p2p.initNode(wsPort);
+            HttpServer http = new HttpServer(p2p);
+            http.initServer(httpPort);
+        }else {
+            System.out.println("参数错误");
+        }
     }
 
 }
